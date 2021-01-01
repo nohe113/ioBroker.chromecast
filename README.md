@@ -71,6 +71,9 @@ Build on top of the following projects:
 10. npm publish
 
 ## Changelog
+### 2.3.1 (2019-10-23)
+* (angelnu) Tested compact mode works in Linux and Windows
+
 ### 2.2.3 (2019-03-19)
 * news
 
@@ -218,7 +221,7 @@ Build on top of the following projects:
 ## License
 The MIT License (MIT)
 
-Copyright (c) 2015-2019 Vegetto <iobroker@angelnu.com>
+Copyright (c) 2015-2020 Vegetto <iobroker@angelnu.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

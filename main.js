@@ -24,27 +24,33 @@ agent.start({
 
 // you have to require the utils module and call adapter function
 const utils = require('@iobroker/adapter-core'); // Get common adapter utils
+const adapterName = require('./package.json').name.split('.').pop();
 
 let adapter;
 function startAdapter(options) {
     options = options || {};
-    Object.assign(options, {
-         name: 'chromecast',
-         ready: main
-    });
+    Object.assign(options, {name: adapterName});
+
     adapter = new utils.Adapter(options);
+
+    adapter.on('ready', ready);
+    adapter.on('unload', unload);
 
     return adapter;
 };
 
 // const SCAN_INTERVAL = 10000;
-function main() {
+let scanner = undefined;
+let devices = undefined;
+function ready () {
 
     //Own libraries
     const LogWrapper        = require('castv2-player').LogWrapper;
     const Scanner           = require('castv2-player').Scanner(new LogWrapper(adapter.log));
 
     const ChromecastDevice  = require('./lib/chromecastDevice')(adapter);
+
+    devices = [];
 
     //Create manually added devices (if any)
     if (adapter.config.manualDevices) {
@@ -55,19 +61,33 @@ function main() {
         //Emulate registerForUpdates
         device.registerForUpdates = function(){};
         
-        new ChromecastDevice(device);
+        devices.push(new ChromecastDevice(device));
       }
     }
 
     //var chromecastDevices = {};
-    new Scanner (connection => {
-      /*chromecastDevices[name] = */new ChromecastDevice(connection);
+    scanner = new Scanner (connection => {
+      devices.push(new ChromecastDevice(connection));
     });
 
     // in this template all states changes inside the adapters namespace are subscribed
     adapter.subscribeStates('*');
 }
 
+function unload (callback) {
+    try {
+      adapter.log.info("Unload triggered");
+      scanner.destroy();
+      devices.forEach(function (device) {
+        device.destroy();
+      });
+      devices = undefined;
+      adapter.log.info("Unload completed sucesfully");	    
+    } catch (error) {
+	    console.error(error);
+    }
+    callback();
+}
 // If started as allInOne/compact mode => return function to create instance
 if (typeof module !== undefined && module.parent) {
     module.exports = startAdapter;
